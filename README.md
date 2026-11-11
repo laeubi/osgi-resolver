@@ -44,3 +44,4 @@ Please open an issue to discuss larger changes before submitting a pull request.
 ## License
 
 This project is licensed under the [Eclipse Public License 2.0](LICENSE) (`EPL-2.0`).
+
