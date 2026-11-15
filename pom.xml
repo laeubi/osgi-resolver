@@ -42,6 +42,17 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <configuration>
+          <!-- maven.deploy.skip is ignored by the plugin, these modules only run tests and create reports -->
+          <excludeArtifacts>
+            <excludeArtifact>felix-resolver</excludeArtifact>
+            <excludeArtifact>coverage</excludeArtifact>
+          </excludeArtifacts>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>${jacoco.version}</version>
