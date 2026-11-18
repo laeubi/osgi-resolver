@@ -184,6 +184,40 @@ class PhasedResolverTest {
         assertThat(strategy.calls).isEqualTo(1);
     }
 
+    private static Resource[] cluster(int number) {
+        ResourceBuilder exporter = bundle("exporter" + number);
+        exporter.addExportPackage("p" + number, export("1.0.0", "api"));
+        exporter.addImportPackage("api", importing("[1,2)"));
+        ResourceBuilder client = bundle("client" + number);
+        client.addImportPackage("p" + number, importing("[1,2)"));
+        client.addImportPackage("api", importing("[2,3)"));
+        return new Resource[] { exporter.build(), client.build() };
+    }
+
+    @Test
+    void conflictsThatDoNotShareChoicesAreHandedToTheStrategyOneByOne() throws ResolutionException {
+        Resource api1 = api("1.0.0");
+        Resource api2 = api("2.0.0");
+        Resource[] first = cluster(1);
+        Resource[] second = cluster(2);
+
+        Map<Resource, List<Wire>> wires = resolver.resolve(TestContext.resolving(first[0], second[0])
+                .offering(api1, api2).optionally(first[1], second[1]));
+
+        assertThat(wires).containsKeys(first[0], second[0]).doesNotContainKeys(first[1], second[1]);
+        assertThat(strategy.scopes).hasSize(2);
+        // the exporters of the api only provide, they are no part of a conflict
+        assertThat(strategy.scopes.get(0)).containsExactlyInAnyOrder("exporter1/1.0.0", "client1/1.0.0");
+        assertThat(strategy.scopes.get(1)).containsExactlyInAnyOrder("exporter2/1.0.0", "client2/1.0.0");
+    }
+
+    @Test
+    void aStrategyIsNotAskedWhenTheClassSpacesAreConsistent() throws ResolutionException {
+        resolver.resolve(TestContext.resolving(consumer("consumer", "[1,3)")).offering(api("1.0.0")));
+
+        assertThat(strategy.calls).isZero();
+    }
+
     @Test
     void diagnosticsArePublishedOnceForASuccessfulResolve() throws ResolutionException {
         Resource consumer = consumer("consumer", "[1,3)");
@@ -229,7 +263,7 @@ class PhasedResolverTest {
 
         assertThat(wires.get(host)).singleElement().satisfies(wire -> assertThat(wire.getProvider()).isSameAs(api2));
         assertThat(wires).doesNotContainKey(fragment);
-        assertThat(strategy.calls).isEqualTo(2);
+        assertThat(strategy.calls).isEqualTo(1);
         assertThat(context.published).singleElement().satisfies(diagnostics -> assertThat(
                 diagnostics.getMessage(fragment)).hasValueSatisfying(message -> assertThat(message).contains("Not attached to the inconsistent host")));
     }
@@ -244,7 +278,7 @@ class PhasedResolverTest {
                 .resolve(TestContext.resolving(host).offering(api("1.0.0"), api("2.0.0")).optionally(first, second));
 
         assertThat(wires).containsKey(host).doesNotContainKeys(first, second);
-        assertThat(strategy.calls).isEqualTo(2);
+        assertThat(strategy.calls).isEqualTo(1);
     }
 
     @Test
@@ -265,7 +299,7 @@ class PhasedResolverTest {
 
         assertThat(wires.get(client)).extracting(Wire::getProvider).containsExactly(api1);
         assertThat(wires).doesNotContainKey(fragment);
-        assertThat(strategy.calls).isEqualTo(2);
+        assertThat(strategy.calls).isEqualTo(1);
     }
 
     @Test
@@ -282,7 +316,7 @@ class PhasedResolverTest {
                 .offering(api("1.0.0"), api("2.0.0")).optionally(fragmentBuilder.build())))
                         .isInstanceOfSatisfying(UsesConstraintViolationException.class,
                                 e -> assertThat(e.getResource()).isSameAs(host));
-        assertThat(strategy.calls).isEqualTo(2);
+        assertThat(strategy.calls).isEqualTo(1);
     }
 
     @Test
@@ -311,7 +345,7 @@ class PhasedResolverTest {
                 .resolve(TestContext.resolving(host).offering(api("1.0.0")).optionally(fragment));
 
         assertThat(wires).containsKey(host).doesNotContainKey(fragment);
-        assertThat(strategy.calls).isEqualTo(1);
+        assertThat(strategy.calls).isEqualTo(0);
     }
 
     @Test

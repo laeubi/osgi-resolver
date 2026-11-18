@@ -28,21 +28,29 @@ import org.eclipse.osgi.technology.resolver.index.UsesIndex;
 public interface UsesSession {
 
     /**
-     * All resources of the graph.
+     * The resources of the graph a strategy may look at and change. A session
+     * that shows a cluster returns only the resources of the cluster. What they
+     * can be wired to outside of it is fixed, a strategy can still read the
+     * candidates and their providers but the selection there is final.
      *
      * @return the resources in the order they were discovered
      */
     Collection<ResolverResource> getResources();
 
     /**
-     * The resources the resolve context asked for explicitly.
+     * The resources the resolve context asked for explicitly. A session that
+     * shows a cluster returns the resources of the cluster that are asked for
+     * or needed by a resource outside of it, as a failure there reaches
+     * the outside.
      *
      * @return the resources that have to resolve
      */
     List<ResolverResource> getMandatory();
 
     /**
-     * The resources the resolve context asked for optionally.
+     * The resources the resolve context asked for optionally. A session that
+     * shows a cluster returns the resources of the cluster that are only
+     * wired to by an optional resource outside of it.
      *
      * @return the resources that resolve if they can
      */

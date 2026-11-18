@@ -5,7 +5,7 @@ Allows a resolver to use a pluggable strategy to resolve the class space conflic
 ## Purpose
 
 The rules of the `classspace-rules` module tell whether a selection of providers is consistent, but not what to do if it is not.
-Several procedures can decide that: a search that changes one choice at a time and re-checks what can see the change, a constraint solver that is handed all open choices of the conflicts, or a combination.
+Several procedures can decide that: a search that changes one choice at a time and re-checks what can see the change, a constraint solver that is handed the open choices of a cluster of conflicts, or a combination.
 This module is the contract between the part of a resolver that discovers, selects and explains and such a procedure, so a procedure can be written, replaced or compared without knowing the rest of a resolver, and a resolver can offer several of them.
 
 ## Concepts

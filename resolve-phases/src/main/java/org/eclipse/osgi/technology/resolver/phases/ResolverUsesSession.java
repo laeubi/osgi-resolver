@@ -37,29 +37,52 @@ public final class ResolverUsesSession implements UsesSession {
 
     private final ResolverGraph graph;
     private final ClassSpace classSpace;
+    private final Collection<ResolverResource> scope;
+    private final List<ResolverResource> mandatory;
+    private final List<ResolverResource> optional;
 
     /**
+     * A session over the whole graph.
+     *
      * @param graph      the graph after the selection
      * @param classSpace the class space of the graph
      */
     public ResolverUsesSession(ResolverGraph graph, ClassSpace classSpace) {
+        this(graph, classSpace, null, graph.getMandatory(), graph.getOptional());
+    }
+
+    /**
+     * A session over a part of the graph, what a strategy sees of a cluster.
+     *
+     * @param graph      the graph after the selection
+     * @param classSpace the class space of the graph
+     * @param scope      the resources of the cluster, {@code null} for all
+     *                   resources of the graph
+     * @param mandatory  the resources of the scope that have to resolve
+     * @param optional   the resources of the scope that resolve if they can
+     */
+    ResolverUsesSession(ResolverGraph graph, ClassSpace classSpace, Collection<ResolverResource> scope,
+            List<ResolverResource> mandatory, List<ResolverResource> optional) {
         this.graph = graph;
         this.classSpace = classSpace;
+        this.scope = scope;
+        this.mandatory = mandatory;
+        this.optional = optional;
     }
 
     @Override
     public Collection<ResolverResource> getResources() {
-        return graph.getResources();
+        return scope == null ? graph.getResources() : scope;
     }
 
     @Override
     public List<ResolverResource> getMandatory() {
-        return graph.getMandatory();
+        return mandatory;
     }
 
     @Override
     public List<ResolverResource> getOptional() {
-        return graph.getOptional();
+        return optional;
     }
 
     @Override
@@ -141,7 +164,7 @@ public final class ResolverUsesSession implements UsesSession {
         boolean changed;
         do {
             changed = false;
-            for (ResolverResource resource : graph.getResources()) {
+            for (ResolverResource resource : getResources()) {
                 if (resource.getState() != ResolveState.RESOLVED) {
                     continue;
                 }

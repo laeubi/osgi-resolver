@@ -30,10 +30,17 @@ package org.eclipse.osgi.technology.resolver.conflicts;
 public interface UsesConflictStrategy {
 
     /**
-     * Enforces the class space constraints of all resolved resources of the
-     * session.
+     * Enforces the class space constraints of the resolved resources of the
+     * session. A resolver may call this more than once for one selection, each
+     * time with a session that shows one cluster of the graph: the resources
+     * tied to an inconsistent resource through the choices they depend on.
+     * What is outside of a cluster is consistent whatever the strategy decides
+     * and must not be changed, so a strategy keeps no assumption about having
+     * seen all conflicts of the resolve.
      *
-     * @param session the state of the resolve after the selection
+     * @param session the state of the resolve after the selection, restricted
+     *                to a cluster that contains at least one inconsistent
+     *                resource
      */
     void enforceUses(UsesSession session);
 }

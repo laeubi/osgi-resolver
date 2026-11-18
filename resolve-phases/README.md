@@ -38,6 +38,10 @@ The `ClassSpace` it returns explains substitutions once the conflicts are decide
 `ConflictPhase` and `ResolverUsesSession`
 : The phase lets a `UsesConflictStrategy` resolve the detected class space conflicts.
 The session is what the strategy sees of the operation, an implementation of the `UsesSession` of the `conflicts` module.
+The phase does not hand over all conflicts at once.
+A resource with an inconsistent class space is the entry point of a cluster: the resources whose class space depends on the same choices, through the uses constraints, the substitution of an export or an attached fragment.
+The strategy gets a session that shows only that cluster and is asked again for the next entry point until no resource is inconsistent.
+Everything outside of a cluster is consistent whatever the strategy decides, so clusters that share no choice can be decided independently of each other.
 
 `FailurePhase` and `WiringPhase`
 : Derive the exception that tells why a mandatory resource failed, or the wires of the resolved resources that are needed by the requested ones.
